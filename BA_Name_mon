@@ -1,0 +1,82 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+# code by Mr_Java Skr
+
+
+# Import the requests library
+import requests
+import json
+import re
+import time
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
+
+key = 'qweqweqwe.qweqweqweqweq.Tltma_LHx5Cfb_RHN7J1GjuZSeE6iT5RG_q5Uk8rTB0'
+
+#symbol = 'BADGER/USDT'
+
+interval = '1m'
+
+exchange = 'binance'
+
+f = open('code.txt','r') # can scan list BA_Name
+
+def send_mail(symbol,rsi,super_cloud):
+    mail_host = "smtp.189.cn"
+    mail_user = ""
+    # mail_pass = ""
+    mail_pass = ".." 
+
+    sender = '@189.cn'
+    receivers = ['@qq.com','@qq.com']
+
+    mail_msg = "mail_msg_text"
+    message = MIMEText(mail_msg, 'html', 'utf-8')
+    message['From'] = Header("dpnslqd", 'utf-8')
+    message['To'] = Header("@qq.com", 'utf-8')
+
+    subject = 'BA_Name - Notice'
+    message['Subject'] = Header(subject, 'utf-8')
+
+    try:
+        smtpObj = smtplib.SMTP()
+        smtpObj.connect(mail_host, 25)
+        smtpObj.login(mail_user, mail_pass)
+        smtpObj.sendmail(sender, receivers, message.as_string())
+        print "Send Success"
+    except smtplib.SMTPException as e:
+        print e
+
+
+def start(url,symbol):
+    try:
+        #url = 'https://api.io/?secret='+str(key)+'&exchange='+str(exchange)+'&symbol='+str(symbol)+'&interval='+str(interval)
+        r = requests.get(url = url , timeout = 5)
+        rsi = re.findall('{"value":(.*?)}',r.content)[0]
+        # Application G
+        super_cloud = 1.5*(float(rsi) - 50)
+        print 'BA_Name:'+str(symbol)
+        print 'rsi_value:'+str(rsi)
+        print 'super_cloud_value:'+str(super_cloud)
+        if float(super_cloud) > 20:
+            title = ''
+            desp = ''
+            url = ''+str(title)+'/'+str(desp) # Bark Notice
+            try:
+                notice_r = requests.get(url = url , timeout = 5)
+                send_mail(symbol = symbol , rsi = rsi , super_cloud = super_cloud)
+                print 'send Success！'
+            except Exception as e:
+                print e
+
+        print '-' * 30
+    except Exception as e:
+        pass
+    time.sleep(1)
+
+for symbol in f.readlines():
+    symbol = symbol.strip('\n')
+    url = 'https://api.io/?secret='+str(key)+'&exchange='+str(exchange)+'&symbol='+str(symbol)+'&interval='+str(interval)
+    # print url
+    start(url = url,symbol = symbol)
